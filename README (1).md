@@ -17,7 +17,7 @@ bridge between the PC and the STM32 UART.
 | Write throughput | about 4.4 KiB/s at 57600 baud (about 78% of the raw line rate) |
 | Erase of sectors 2-11 | about 7.7 s |
 | Update of the 6 KB test app | about 9 s total (erase + write) |
-| Failure tests | 16 rejection checks plus bad-CRC recovery, all passing |
+| Failure tests | 15 invalid ERASE/WRITE requests rejected, bad-CRC recovery, bootloader alive afterwards, all passing |
 
 ## Hardware
 
@@ -83,7 +83,8 @@ path start the application, which gives the application a clean peripheral state
 
 - Linked at `0x08008000` (`FLASH ORIGIN = 0x08008000`).
 - Sets the vector table with `SCB->VTOR = 0x08008000U;` early in `main()`.
-- Calls `__enable_irq()`, because the bootloader leaves interrupts disabled.
+- Calls `__enable_irq()` early in `main()` as a safeguard. The bootloader masks all
+  interrupts while handing over, and `HAL_Delay` hangs if interrupts are off.
 
 ## Protocol
 
