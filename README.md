@@ -2,11 +2,29 @@
 
 A small custom bootloader for the STM32F407 Discovery board. It receives a new
 firmware image over UART from a Python host tool, writes it to flash, and jumps
-to it. Every packet is protected by a CRC32, and the bootloader refuses to erase
-or overwrite itself.
+to it. Every request packet is protected by a CRC32, and the bootloader refuses to
+erase or overwrite itself.
 
 The Discovery board has no USB virtual COM port, so an Arduino Uno is used as the
 bridge between the PC and the STM32 UART.
+
+## Demo
+
+<p align="center">
+  <img src="docs/HardwareSetup.jpeg" alt="STM32F407 Discovery, Arduino Uno and breadboard" width="320">
+  &nbsp;&nbsp;
+  <img src="docs/Breadboard.jpeg" alt="Breadboard with the voltage divider" width="320">
+</p>
+
+*Left: hardware setup (Discovery board, Arduino Uno bridge and breadboard). Right: close-up of the breadboard with the 1k / 2k voltage divider between the Uno's TX and the STM32's RX.*
+
+<p align="center">
+  <img src="docs/SoftwareResult.png" alt="flash_tool.py output in the terminal" width="700">
+</p>
+
+*Software result: `flash_tool.py` erasing, writing and jumping to the new firmware (6,104-byte image, about 4.3 KiB/s write throughput).*
+
+[Watch the demo video](docs/UART_Bootloader_Demo.mp4): bootloader mode, a UART update, and the new firmware running.
 
 ## Results
 
@@ -14,10 +32,10 @@ bridge between the PC and the STM32 UART.
 |---|---|
 | Bootloader size | 7,336 bytes (7,292 text + 44 data), limit 32 KB |
 | Test application size | 6,104 bytes |
-| Write throughput | about 4.4 KiB/s at 57600 baud (about 78% of the raw line rate) |
-| Erase of sectors 2-11 | about 7.7 s |
-| Update of the 6 KB test app | about 9 s total (erase + write) |
-| Failure tests | 15 invalid ERASE/WRITE requests rejected, bad-CRC recovery, bootloader alive afterwards, all passing |
+| Write throughput | about 4.3-4.4 KiB/s at 57600 baud (roughly 77-79% of the raw line rate) |
+| Erase of sectors 2-11 | about 7.7-7.8 s |
+| Update of the 6 KB test app | about 9 s total (erase + write, excluding the 2 s wait while the port opens) |
+| Failure tests | 15 invalid ERASE/WRITE requests rejected, bad-CRC recovery, bootloader still alive afterwards, all passing |
 
 ## Hardware
 
@@ -72,9 +90,8 @@ with `LENGTH = 992K`.
 3. Otherwise the bootloader stays active, turns the green LED (PD12) on, and waits for
    packets on USART2.
 
-The jump to the application disables interrupts, de-initialises the HAL and clocks,
-stops SysTick, clears the NVIC, sets `SCB->VTOR` and the main stack pointer, and calls
-the application's reset handler.
+The jump to the application de-initialises the HAL and clocks, stops SysTick, clears the
+NVIC, sets `SCB->VTOR` and the main stack pointer, and calls the application's reset handler.
 
 After a successful update the bootloader performs a system reset and lets the normal boot
 path start the application, which gives the application a clean peripheral state.
@@ -147,7 +164,8 @@ throughput, and finally sends JUMP.
 
 ## Tests
 
-The scripts in `bootloader_tool/` assume the board is in bootloader mode.
+The scripts in `bootloader_tool/` assume the board is in bootloader mode, except
+`test_crc.py`, which needs no board.
 
 | Script | What it checks |
 |---|---|
@@ -192,17 +210,25 @@ exits with an error and a full re-run succeeds), and cutting power during an upd
 - Removing unused CubeMX peripherals from the Discovery preset (USB host, I2C, I2S, SPI)
   cut the bootloader from about 19.6 KB to 7.3 KB and the test application from 11.4 KB to 6.1 KB.
 
-## Repository layout (suggested)
+## Repository layout
 
 ```
-bootloader/            STM32CubeIDE project (linked at 0x08000000, 32 KB)
+P3_UART_bootloader/    STM32CubeIDE bootloader project (linked at 0x08000000, 32 KB)
 app/                   Test application (linked at 0x08008000)
 bootloader_tool/       flash_tool.py and the test scripts
 sketch_nov15a/         Arduino Uno bridge sketch
+docs/                  Photos and demo video used in this README
 README.md
-.gitignore             Debug/, Release/, __pycache__/, *.o, *.elf, *.map, *.list, read.bin
+.gitignore             Debug/, Release/, __pycache__/, *.o, *.d, *.elf, *.map,
+                       *.list, *.su, *.cyclo, *.launch, read.bin
 ```
 
 ## Tools
 
-STM32CubeIDE and STM32CubeMX with the STM32F4 HAL, STM32CubeProgrammer, Arduino IDE, Python 3 with pyserial.
+STM32CubeIDE and STM32CubeMX with the STM32F4 HAL, STM32CubeProgrammer, Arduino IDE,
+Python 3 with pyserial.
+
+## Licenses
+
+The STM32 HAL and CMSIS code in the `Drivers/` folders belongs to STMicroelectronics
+and Arm and is covered by their own licenses.
