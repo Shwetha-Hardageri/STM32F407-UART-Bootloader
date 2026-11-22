@@ -24,8 +24,6 @@ bridge between the PC and the STM32 UART.
 
 *Software result: `flash_tool.py` erasing, writing and jumping to the new firmware (6,104-byte image, about 4.3 KiB/s write throughput).*
 
-[Watch the demo video](docs/UART_demo.mp4): bootloader mode, a UART update, and the new firmware running.
-
 ## Results
 
 | Item | Value |
@@ -217,7 +215,7 @@ P3_UART_bootloader/    STM32CubeIDE bootloader project (linked at 0x08000000, 32
 app/                   Test application (linked at 0x08008000)
 bootloader_tool/       flash_tool.py and the test scripts
 sketch_nov15a/         Arduino Uno bridge sketch
-docs/                  Photos and demo video used in this README
+docs/                  Photos used in this README
 README.md
 .gitignore             Debug/, Release/, __pycache__/, *.o, *.d, *.elf, *.map,
                        *.list, *.su, *.cyclo, *.launch, read.bin
