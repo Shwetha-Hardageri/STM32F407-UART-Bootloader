@@ -24,7 +24,7 @@ bridge between the PC and the STM32 UART.
 
 *Software result: `flash_tool.py` erasing, writing and jumping to the new firmware (6,104-byte image, about 4.3 KiB/s write throughput).*
 
-[Watch the demo video](docs/UART_Bootloader_Demo.mp4): bootloader mode, a UART update, and the new firmware running.
+[Watch the demo video](docs/UART_demo.mp4): bootloader mode, a UART update, and the new firmware running.
 
 ## Results
 
